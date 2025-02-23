@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Password Strength Checker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: #fff;
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        h1 {
+            color: #632f98;
+            margin-bottom: 24px;
+            font-size: 2em;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #764ba2;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 16px;
+            transition: border 0.3s ease;
+        }
+        input[type="password"]:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        button {
+            background: #667eea;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background: #564ba2;
+        }
+        h2, h3 {
+            color: #764ba2;
+            margin-top: 20px;
+            font-size: 1.5em;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            background: #e7f3ff;
+            border-left: 4px solid #667eea;
+            margin: 8px 0;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 16px;
+            text-align: left;
+        }
+        p {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #c3e6cb;
+            font-weight: bold;
+            word-break: break-word;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            label, input, button, li, p {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Password Strength Checker</h1>
+        <form method="post">
+            <label for="password">Enter Your Password:</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Check Strength</button>
+        </form>
+
+        {% if score %}
+            <h2>Password Strength: {{ score }}</h2>
+        {% endif %}
+
+        {% if feedback %}
+            <h3>Suggestions:</h3>
+            <ul>
+                {% for suggestion in feedback %}
+                    <li>{{ suggestion }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {% if suggest_password %}
+            <h3>Suggested Secure Password:</h3>
+            <p>{{ suggest_password }}</p>
+        {% endif %}
+    </div>
+</body>
+</html>
