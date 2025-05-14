@@ -1,1 +1,2 @@
-# Password-strength-check
+Password Strength & Breach Checker
+Password Hashing & Verification Demo
