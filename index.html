@@ -2,8 +2,87 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Password Strength Checker</title>
+    <title>Password Strength Checker & Breach Check</title>
     <style>
+        /* Keep all your existing CSS here */
+        /* Add styles for flash messages if needed */
+
+        :root {
+            --bg-gradient-start: #667eea;
+            --bg-gradient-end: #4b1c7b;
+            --text-color: #333;
+            --container-bg: #fff;
+            --container-shadow: rgba(0, 0, 0, 0.2);
+            --header-color: #632f98;
+            --label-color: #333;
+            --input-border: #764ba2;
+            --input-border-focus: #667eea;
+            --input-bg: #fff;
+            --input-text: #333;
+            --button-bg: #667eea;
+            --button-hover-bg: #564ba2;
+            --button-text: #fff;
+            --secondary-header-color: #764ba2;
+            --list-item-bg: #e7f3ff;
+            --list-item-border: #667eea;
+            --list-item-text: #333;
+            --suggestion-bg: #d4edda;
+            --suggestion-text: #155724;
+            --suggestion-border: #c3e6cb;
+            --warning-bg: #f8d7da;
+            --warning-text: #721c24;
+            --warning-border: #f5c6cb;
+             --info-bg: #e2e3e5;
+             --info-text: #383d41;
+             --info-border: #d6d8db;
+            --toggle-btn-bg: #eee;
+            --toggle-btn-text: #333;
+            --toggle-btn-border: #ccc;
+            --toggle-btn-hover-bg: #ddd;
+            --rainbow-opacity: 0.15;
+        }
+
+        body.dark-mode {
+            --bg-gradient-start: #2c3e50;
+            --bg-gradient-end: #01021b;
+            --text-color: #f0f0f0;
+            --container-bg: #2c2c3e;
+            --container-shadow: rgba(0, 0, 0, 0.5);
+            --header-color: #a37fc9;
+            --label-color: #ccc;
+            --input-border: #764ba2;
+            --input-border-focus: #889eea;
+            --input-bg: #3a3a4a;
+            --input-text: #f0f0f0;
+            --button-bg: #764ba2;
+            --button-hover-bg: #663a8a;
+            --button-text: #fff;
+            --secondary-header-color: #a37fc9;
+            --list-item-bg: #3a3a4a;
+            --list-item-border: #889eea;
+            --list-item-text: #f0f0f0;
+            --suggestion-bg: #2a4d3a;
+            --suggestion-text: #c3e6cb;
+            --suggestion-border: #4a7c59;
+            --warning-bg: #721c24;
+            --warning-text: #f8d7da;
+            --warning-border: #f5c6cb;
+            --info-bg: #495057;
+            --info-text: #e2e3e5;
+            --info-border: #d6d8db;
+            --toggle-btn-bg: #444;
+            --toggle-btn-text: #eee;
+            --toggle-btn-border: #666;
+            --toggle-btn-hover-bg: #555;
+            --rainbow-opacity: 0.2;
+        }
+
+        @keyframes rainbowFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -11,129 +90,478 @@
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: #333;
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            color: var(--text-color);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
             padding: 20px;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
         .container {
-            background: #fff;
+            background: var(--container-bg);
             border-radius: 16px;
             padding: 40px;
             width: 100%;
             max-width: 420px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 20px var(--container-shadow);
             text-align: center;
-            transition: all 0.3s ease;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 0;
         }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: inherit;
+            background: linear-gradient(
+                -45deg,
+                #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8f00ff
+            );
+            background-size: 400% 400%;
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.5s ease;
+            animation: rainbowFlow 15s linear infinite paused;
+        }
+
+        .container:hover::before {
+            opacity: var(--rainbow-opacity);
+            animation-play-state: running;
+        }
+
+        #darkModeToggle {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: var(--toggle-btn-bg);
+            color: var(--toggle-btn-text);
+            border: 1px solid var(--toggle-btn-border);
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            z-index: 10;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+        #darkModeToggle:hover {
+            background-color: var(--toggle-btn-hover-bg);
+        }
+
+        .container > h1,
+        .container > form,
+        .container > h2,
+        .container > h3,
+        .container > ul,
+        .container > p,
+        .container > a,
+        .container > .status-message { /* Added status-message */
+            position: relative;
+            z-index: 1;
+        }
+         .container form > label,
+         .container form > input,
+         .container form > button {
+             position: relative;
+             z-index: 1;
+         }
+        .container ul > li {
+             position: relative;
+             z-index: 1;
+        }
+
+
         h1 {
-            color: #632f98;
+            color: var(--header-color);
             margin-bottom: 24px;
             font-size: 2em;
+            transition: color 0.3s ease;
         }
         label {
             display: block;
             margin-bottom: 10px;
             font-size: 16px;
             font-weight: bold;
+            color: var(--label-color);
+            transition: color 0.3s ease;
         }
         input[type="password"] {
             width: 100%;
             padding: 12px;
-            border: 2px solid #764ba2;
+            border: 2px solid var(--input-border);
             border-radius: 8px;
             font-size: 16px;
             margin-bottom: 16px;
-            transition: border 0.3s ease;
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
         }
         input[type="password"]:focus {
-            border-color: #667eea;
+            border-color: var(--input-border-focus);
             outline: none;
         }
-        button {
-            background: #667eea;
-            color: #fff;
+        button[type="submit"] {
+            background: var(--button-bg);
+            color: var(--button-text);
             border: none;
             border-radius: 8px;
             padding: 12px 20px;
             font-size: 16px;
             cursor: pointer;
             width: 100%;
-            transition: background 0.3s ease;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
-        button:hover {
-            background: #564ba2;
+        button[type="submit"]:hover {
+            background: var(--button-hover-bg);
         }
         h2, h3 {
-            color: #764ba2;
+            color: var(--secondary-header-color);
             margin-top: 20px;
             font-size: 1.5em;
+            transition: color 0.3s ease;
         }
         ul {
             list-style: none;
             padding: 0;
         }
         li {
-            background: #e7f3ff;
-            border-left: 4px solid #667eea;
+            background: var(--list-item-bg);
+            border-left: 4px solid var(--list-item-border);
             margin: 8px 0;
             padding: 10px;
             border-radius: 8px;
             font-size: 16px;
             text-align: left;
+            color: var(--list-item-text);
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
         }
         p {
-            background: #d4edda;
-            color: #155724;
-            padding: 12px;
+            margin-bottom: 15px;
+             text-align: left;
+             font-size: 1rem;
+             line-height: 1.5;
+             color: var(--text-color);
+        }
+
+        /* --- Specific result styles (keep from previous index.html) --- */
+
+        /* Style for the Breach Warning box */
+        .breach-warning {
+            margin-top: 20px;
+            padding: 15px;
             border-radius: 8px;
-            border: 1px solid #c3e6cb;
+            background-color: var(--warning-bg);
+            color: var(--warning-text);
+            border: 1px solid var(--warning-border);
             font-weight: bold;
             word-break: break-word;
+            text-align: left;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
         }
+        .breach-warning strong {
+             color: var(--warning-text); /* Ensure bold text matches warning color */
+        }
+
+
+        /* Style for Suggested Password box */
+        .suggested-password-box {
+            margin-top: 20px;
+            background: var(--suggestion-bg);
+            color: var(--suggestion-text);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--suggestion-border);
+            font-weight: bold;
+            word-break: break-word;
+            text-align: left;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+
+        /* Style for Improvement Tips */
+         .improvement-tips {
+             margin-top: 20px;
+             text-align: left;
+             font-size: 1rem;
+             line-height: 1.6;
+             color: var(--text-color);
+         }
+         .improvement-tips strong {
+             color: var(--secondary-header-color);
+              transition: color 0.3s ease;
+         }
+         .improvement-tips ul {
+             list-style: disc inside;
+              padding-left: 20px;
+         }
+         .improvement-tips li {
+             background: none;
+             border: none;
+             margin: 5px 0;
+             padding: 0;
+             font-size: 1rem;
+             color: var(--text-color);
+         }
+         .improvement-tips li strong {
+            display: block;
+            margin-top: 10px;
+            margin-bottom: 5px;
+         }
+         .improvement-tips .general-tips {
+             margin-top: 20px;
+             padding: 15px;
+             border-radius: 8px;
+             background-color: var(--info-bg);
+             color: var(--info-text);
+             border: 1px solid var(--info-border);
+             transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+         }
+          .improvement-tips .general-tips strong {
+              color: var(--info-text);
+          }
+           .improvement-tips .general-tips ul {
+               padding-left: 25px;
+           }
+           .improvement-tips .general-tips li {
+               color: var(--info-text);
+           }
+
+        /* Style for Flask Flash messages */
+        .status-message { /* Reusing status-message styles from manager demo */
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+            border: 1px solid;
+             font-size: 1em; /* Ensure readability */
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+         .status-message.success {
+             background-color: var(--suggestion-bg);
+             color: var(--suggestion-text);
+             border-color: var(--suggestion-border);
+         }
+         .status-message.error {
+             background-color: var(--warning-bg);
+             color: var(--warning-text);
+             border-color: var(--warning-border);
+         }
+          .status-message.warning { /* Add warning style if needed */
+             background-color: #ffeeba;
+             color: #856404;
+             border-color: #ffeeba;
+         }
+         body.dark-mode .status-message.warning {
+              background-color: #856404;
+              color: #ffeeba;
+              border-color: #856404;
+         }
+
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            color: var(--secondary-header-color);
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+        a:hover {
+            text-decoration: underline;
+            color: var(--header-color);
+        }
+
+
         @media (max-width: 768px) {
             .container {
-                padding: 20px;
+                padding: 30px 20px;
+                max-width: 95%;
             }
             h1 {
                 font-size: 1.8em;
             }
-            label, input, button, li, p {
+            label, input, button, li, p, a, .breach-warning, .suggested-password-box, .improvement-tips, .status-message {
                 font-size: 14px;
+            }
+            .improvement-tips ul {
+                 padding-left: 15px;
+            }
+             .improvement-tips .general-tips ul {
+                 padding-left: 20px;
+             }
+            #darkModeToggle {
+                top: 10px;
+                right: 10px;
+                padding: 5px 10px;
+                font-size: 11px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Password Strength Checker</h1>
-        <form method="post">
+        <!-- Dark Mode Toggle Button -->
+        <button id="darkModeToggle">Toggle Mode</button>
+
+        <h1>Password Strength & Breach Checker</h1>
+         <p>Enter a password to check its complexity and if it has appeared in known data breaches. We do NOT store your password here.</p>
+
+        {# --- Display Flask Flash Messages --- #}
+        {% if flashed_messages %}
+            {% for message in flashed_messages %}
+                 {# Assuming flash messages are tuples like (message, category) #}
+                 {% set msg_text, msg_category = message %}
+                 <div class="status-message {{ msg_category if msg_category in ['success', 'error', 'warning'] else 'info' }}">
+                     {{ msg_text | safe }} {# | safe is needed if message contains HTML #}
+                 </div>
+            {% endfor %}
+        {% endif %}
+
+
+        <form method="post" action="{{ url_for('index') }}">
             <label for="password">Enter Your Password:</label>
             <input type="password" id="password" name="password" required>
-            <button type="submit">Check Strength</button>
+            <button type="submit">Check Password</button>
         </form>
 
-        {% if score %}
-            <h2>Password Strength: {{ score }}</h2>
-        {% endif %}
+        {# Display results if they exist (after POST request) #}
+        {% if score is not none %} {# Check if score is available #}
+            <h2>Result:</h2>
 
-        {% if feedback %}
-            <h3>Suggestions:</h3>
-            <ul>
-                {% for suggestion in feedback %}
-                    <li>{{ suggestion }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+            {# Display Breach Check Result #}
+            {% if breach_count is not none and breach_count > 0 %}
+                <div class="breach-warning">
+                    🚨 **SEVERE WARNING:** This password was found <strong>{{ breach_count }}</strong> times in public data breaches.
+                    <br>
+                    <strong style="font-size: 1.1em;">You MUST change this password everywhere you use it.</strong>
+                </div>
+            {% elif breach_count == 0 %}
+                 <p style="margin-top: 15px; font-weight: bold; color: var(--suggestion-text);">✅ Good news: This password was NOT found in major public breaches via HIBP.</p>
+            {% elif breach_count == -1 %}
+                 <p style="margin-top: 15px; font-weight: bold; color: var(--warning-text);">⚠️ Could not check against breach database. Please try again later.</p>
+            {% endif %}
 
-        {% if suggest_password %}
-            <h3>Suggested Secure Password:</h3>
-            <p>{{ suggest_password }}</p>
-        {% endif %}
+
+            {# Display Strength Score #}
+            <h3 style="margin-top: 15px;">Strength Score: {{ score }} / 100 ({{ password_score.split(' ')[0] if password_score }})</h3>
+
+
+            {# Display Complexity Feedback #}
+            {% if feedback %}
+                <h3 style="margin-top: 15px;">Tips to Improve Complexity:</h3>
+                <ul>
+                    {% for suggestion in feedback %}
+                        <li>{{ suggestion }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+
+             {# Display Suggested Secure Password #}
+            {% if suggest_password %}
+                <h3 style="margin-top: 15px;">Suggested Secure Password:</h3>
+                <p class="suggested-password-box">{{ suggest_password }}</p>
+            {% endif %}
+
+
+            {# Display Combined Improvement Tips / Best Practices #}
+            {% if improvement_tips %}
+                <div class="improvement-tips">
+                    {% for tip_paragraph in improvement_tips %}
+                         {% if tip_paragraph.strip().startswith('**') and tip_paragraph.strip().endswith('**') %}
+                             <h4>{{ tip_paragraph.strip('**').strip() }}</h4>
+                         {% elif tip_paragraph.strip().startswith('🔒') or tip_paragraph.strip().startswith('🛡️') %}
+                              <h3 style="margin-top: 20px;">{{ tip_paragraph.splitlines()[0] | safe }}</h3>
+                               {% for sub_tip in tip_paragraph.splitlines()[1:] %}
+                                    {% if sub_tip.strip().startswith('- ') %}
+                                        {% if "General Password Security Best Practices" in tip_paragraph %}
+                                            {% if loop.first %}
+                                                <div class="general-tips"><ul>
+                                            {% endif %}
+                                            <li>{{ sub_tip.strip('- ').strip() }}</li>
+                                            {% if loop.last %}
+                                                </ul></div>
+                                            {% endif %}
+                                        {% else %}
+                                            {% if loop.first %}
+                                                <ul>
+                                            {% endif %}
+                                            <li>{{ sub_tip.strip('- ').strip() }}</li>
+                                            {% if loop.last %}
+                                                </ul>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% else %}
+                                        <p>{{ sub_tip }}</p>
+                                    {% endif %}
+                               {% endfor %}
+                         {% else %}
+                              <p>{{ tip_paragraph | safe }}</p>
+                         {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+        {% endif %} {# End if score check #}
+
+
+        <!-- Link to the Hashing/Verification page -->
+        <a href="{{ url_for('encrypt_password') }}" style="margin-top: 30px;">See how passwords are securely stored →</a>
+
+        <!-- Link to the Password Manager Demo page -->
+        <a href="{{ url_for('password_manager') }}">Try the Password Manager Demo →</a>
+
+
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleButton = document.getElementById('darkModeToggle');
+            const body = document.body;
+
+            const applyTheme = (theme) => {
+                if (theme === 'dark') {
+                    body.classList.add('dark-mode');
+                    toggleButton.textContent = 'Light Mode';
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    body.classList.remove('dark-mode');
+                    toggleButton.textContent = 'Dark Mode';
+                    localStorage.setItem('theme', 'light');
+                }
+            };
+
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            let initialTheme = 'light';
+            if (savedTheme) {
+                initialTheme = savedTheme;
+            } else if (prefersDark) {
+                initialTheme = 'dark';
+            }
+            applyTheme(initialTheme);
+
+            toggleButton.addEventListener('click', () => {
+                const currentTheme = body.classList.contains('dark-mode') ? 'dark' : 'light';
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                applyTheme(newTheme);
+            });
+
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                 const manualThemeSet = localStorage.getItem('theme');
+                 if (!manualThemeSet) {
+                    applyTheme(e.matches ? 'dark' : 'light');
+                 }
+            });
+        });
+    </script>
+
 </body>
 </html>

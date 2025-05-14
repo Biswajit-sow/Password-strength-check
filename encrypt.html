@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Secure Password Handling Demo</title>
+    <style>
+        /* Keep all your existing CSS here from the previous step */
+        /* Ensure styles for .result-box, .verification-result, a, etc. are present */
+        /* Add styles for new explanation boxes and disclaimers */
+         :root {
+            --bg-gradient-start: #667eea;
+            --bg-gradient-end: #4b1c7b;
+            --text-color: #333;
+            --container-bg: #fff;
+            --container-shadow: rgba(0, 0, 0, 0.2);
+            --header-color: #632f98;
+            --label-color: #333;
+            --input-border: #764ba2;
+            --input-border-focus: #667eea;
+            --input-bg: #fff;
+            --input-text: #333;
+            --button-bg: #667eea;
+            --button-hover-bg: #564ba2;
+            --button-text: #fff;
+            --secondary-header-color: #764ba2;
+            --list-item-bg: #e7f3ff; /* Not used on this page, but keep for consistency */
+            --list-item-border: #667eea; /* Not used on this page, but keep for consistency */
+            --list-item-text: #333; /* Not used on this page, but keep for consistency */
+            --suggestion-bg: #d4edda; /* Used for hash output */
+            --suggestion-text: #155724; /* Used for hash output */
+            --suggestion-border: #c3e6cb; /* Used for hash output */
+            --warning-bg: #f8d7da; /* Background for warnings */
+            --warning-text: #721c24; /* Text color for warnings */
+            --warning-border: #f5c6cb; /* Border color for warnings */
+             --info-bg: #e9ecef; /* Light grey/blue for info boxes */
+             --info-text: #495057; /* Dark grey text for info boxes */
+             --info-border: #ced4da; /* Border for info boxes */
+            --toggle-btn-bg: #eee;
+            --toggle-btn-text: #333;
+            --toggle-btn-border: #ccc;
+            --toggle-btn-hover-bg: #ddd;
+            --rainbow-opacity: 0.15;
+        }
+
+        body.dark-mode {
+            --bg-gradient-start: #2c3e50;
+            --bg-gradient-end: #01021b;
+            --text-color: #f0f0f0;
+            --container-bg: #2c2c3e;
+            --container-shadow: rgba(0, 0, 0, 0.5);
+            --header-color: #a37fc9;
+            --label-color: #ccc;
+            --input-border: #764ba2;
+            --input-border-focus: #889eea;
+            --input-bg: #3a3a4a;
+            --input-text: #f0f0f0;
+            --button-bg: #764ba2;
+            --button-hover-bg: #663a8a;
+            --button-text: #fff;
+            --secondary-header-color: #a37fc9;
+            --list-item-bg: #3a3a4a; /* Not used on this page, but keep for consistency */
+            --list-item-border: #889eea; /* Not used on this page, but keep for consistency */
+            --list-item-text: #f0f0f0; /* Not used on this page, but keep for consistency */
+            --suggestion-bg: #2a4d3a; /* Used for hash output */
+            --suggestion-text: #c3e6cb; /* Used for hash output */
+            --suggestion-border: #4a7c59; /* Used for hash output */
+            --warning-bg: #721c24; /* Background for warnings (dark mode) */
+            --warning-text: #f8d7da; /* Text color for warnings (dark mode) */
+            --warning-border: #f5c6cb; /* Border color for warnings (dark mode) */
+            --info-bg: #495057; /* Dark grey/blue for info boxes (dark mode) */
+            --info-text: #e9ecef; /* Light grey text for info boxes (dark mode) */
+            --info-border: #ced4da; /* Border for info boxes (dark mode) */
+            --toggle-btn-bg: #444;
+            --toggle-btn-text: #eee;
+            --toggle-btn-border: #666;
+            --toggle-btn-hover-bg: #555;
+            --rainbow-opacity: 0.2;
+        }
+
+        @keyframes rainbowFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .container {
+            background: var(--container-bg);
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 480px; /* Increased max-width slightly */
+            box-shadow: 0 4px 20px var(--container-shadow);
+            text-align: center;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: inherit;
+            background: linear-gradient(
+                -45deg,
+                #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8f00ff
+            );
+            background-size: 400% 400%;
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.5s ease;
+            animation: rainbowFlow 15s linear infinite paused;
+        }
+
+        .container:hover::before {
+            opacity: var(--rainbow-opacity);
+            animation-play-state: running;
+        }
+
+        #darkModeToggle {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: var(--toggle-btn-bg);
+            color: var(--toggle-btn-text);
+            border: 1px solid var(--toggle-btn-border);
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            z-index: 10;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+        #darkModeToggle:hover {
+            background-color: var(--toggle-btn-hover-bg);
+        }
+
+         .container > h1,
+         .container > h2,
+         .container > form,
+         .container > div, /* Added div for result display */
+         .container > p,
+         .container > a {
+             position: relative;
+             z-index: 1;
+         }
+        .container form > label,
+        .container form > input,
+        .container form > button {
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            color: var(--header-color);
+            margin-bottom: 24px;
+            font-size: 2em;
+            transition: color 0.3s ease;
+        }
+         h2 {
+             color: var(--secondary-header-color);
+             margin-top: 20px;
+             font-size: 1.5em;
+             transition: color 0.3s ease;
+             margin-bottom: 15px;
+             border-bottom: 1px solid var(--secondary-header-color); /* Separator */
+             padding-bottom: 10px;
+         }
+         h2:first-of-type { /* No border before the first H2 */
+            border-bottom: none;
+            padding-bottom: 0;
+         }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--label-color);
+            transition: color 0.3s ease;
+            text-align: left;
+        }
+        input[type="password"], input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--input-border);
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 16px;
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+        }
+        input[type="password"]:focus, input[type="text"]:focus {
+            border-color: var(--input-border-focus);
+            outline: none;
+        }
+        button[type="submit"] {
+            background: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            margin-bottom: 15px;
+        }
+        button[type="submit"]:hover {
+            background: var(--button-hover-bg);
+        }
+
+        /* Style for the result container (Hashing Output) */
+        .result-box {
+            margin-top: 10px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: var(--suggestion-bg);
+            color: var(--suggestion-text);
+            border: 1px solid var(--suggestion-border);
+            text-align: left;
+            word-break: break-all;
+            font-size: 14px;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+        .result-box strong {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--secondary-header-color);
+            font-size: 16px;
+            transition: color 0.3s ease;
+        }
+
+        /* Specific styles for verification result */
+        .verification-result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.2em;
+            background-color: #ffeeba;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .verification-result.success {
+            background-color: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+
+        .verification-result.failure {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+
+        /* New styles for info/disclaimer boxes */
+        .info-box, .disclaimer-box {
+             margin-top: 20px;
+             padding: 15px;
+             border-radius: 8px;
+             background-color: var(--info-bg);
+             color: var(--info-text);
+             border: 1px solid var(--info-border);
+             text-align: left;
+             font-size: 0.95em;
+             line-height: 1.4;
+             transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+         .disclaimer-box {
+             background-color: var(--warning-bg); /* Use warning colors for disclaimer */
+             color: var(--warning-text);
+             border-color: var(--warning-border);
+             font-weight: bold;
+         }
+         .disclaimer-box strong {
+              color: var(--warning-text); /* Ensure bold text matches */
+         }
+
+
+        a {
+             display: inline-block;
+             margin-top: 20px;
+             color: var(--secondary-header-color);
+             text-decoration: none;
+             font-weight: bold;
+             transition: color 0.3s ease;
+        }
+        a:hover {
+            text-decoration: underline;
+            color: var(--header-color);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+                max-width: 95%;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            label, input, button, .result-box, .verification-result, a, .info-box, .disclaimer-box {
+                font-size: 14px;
+            }
+             .result-box strong {
+                 font-size: 15px;
+             }
+             .verification-result {
+                 font-size: 1em;
+             }
+            #darkModeToggle {
+                top: 10px;
+                right: 10px;
+                padding: 5px 10px;
+                font-size: 11px;
+            }
+        }
+
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Dark Mode Toggle Button -->
+        <button id="darkModeToggle">Toggle Mode</button>
+
+        <h1>Password Hashing & Verification Demo</h1>
+
+        <p>Understanding how systems handle your password is key to online security.</p>
+
+        <div class="disclaimer-box">
+            <strong>IMPORTANT SECURITY NOTE:</strong> This is a *demonstration* page only. Do NOT enter any password you use on real websites here. Your password is NOT stored, but you should still only use this page for educational purposes with example passwords.
+        </div>
+
+        <div class="info-box">
+            <p>When you create an account online, a secure system doesn't store your actual password. Instead, it uses a **hashing** process.</p>
+            <p>Hashing is a **one-way mathematical function**. It turns your password into a unique, fixed-length string (the hash value). Crucially, you **cannot** reverse this process to get the original password back from the hash.</p>
+            <p>A secure hash also uses a **salt** - a unique, random piece of data added to your password *before* it's hashed. This ensures that even if two users have the exact same password, they will have completely different hash values, making it harder for attackers to crack many passwords at once using pre-computed tables (rainbow tables).</p>
+        </div>
+
+
+        <h2>Step 1: See Hashing in Action</h2>
+        <form method="post" action="{{ url_for('encrypt_password') }}">
+            <label for="password_hash">Enter an **example** password to hash:</label>
+            <input type="password" id="password_hash" name="password_hash" required>
+            <button type="submit">Hash Password</button>
+        </form>
+
+        {# Display hashing results if they exist #}
+        {% if original_password_hashed and hashed_password %}
+            <div class="result-box">
+                <strong>Original Password (Input):</strong> {{ original_password_hashed }}<br><br> {# This will show the asterisk string #}
+                <strong>Generated BCrypt Hash (Stored in Database):</strong> <span id="generatedHash">{{ hashed_password }}</span>
+                <p style="margin-top: 10px; font-size: 12px; font-weight: normal; color: inherit;">
+                    This hash string includes the salt and work factor used. The original password cannot be derived from this value.
+                </p>
+            </div>
+             {# Add a small indicator or button to copy the hash for verification #}
+             <button onclick="copyHash()" style="font-size: 0.9em; padding: 5px 10px; margin-top: 10px; width: auto;">Copy Hash for Verification</button>
+        {% endif %}
+
+
+        {# --- Verification Section --- #}
+        <h2 style="margin-top: 40px;">Step 2: How Systems Verify Your Login</h2>
+         <div class="info-box">
+             <p>When you log in, the system doesn't decrypt the stored hash (because it's impossible). Instead, it takes the password you *just* entered, adds the **same salt** that was used previously (which is retrieved from the stored hash), and **hashes your login attempt** using the same process.</p>
+             <p>Finally, it **compares** the newly generated hash of your login attempt to the hash it has stored. If they match, it means you entered the correct password.</p>
+             <p>This is how secure systems verify your identity without ever needing to know or store your actual password.</p>
+         </div>
+
+        <form method="post" action="{{ url_for('encrypt_password') }}">
+            <label for="password_attempt">Enter Your **Example** Password Attempt (try correct and wrong):</label>
+            <input type="password" id="password_attempt" name="password_attempt" required>
+
+            <label for="hash_to_verify">Paste the Hash to Verify Against:</label>
+             {# Use type="text" so the hash is visible #}
+            <input type="text" id="hash_to_verify" name="hash_to_verify" required value="{{ hashed_password if hashed_password }}">
+
+            <button type="submit">Verify Password</button>
+        </form>
+
+        {# Display verification results if they exist #}
+        {% if verification_result is not none %}
+            <div class="verification-result {{ 'success' if verification_result else 'failure' }}">
+                Verification Result:
+                {% if verification_result %}
+                    Password Attempt MATCHES the stored hash. ✅
+                {% else %}
+                    Password Attempt DOES NOT MATCH the stored hash. ❌
+                    (This could be a wrong password, wrong hash, or an invalid hash format)
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <div class="info-box" style="margin-top: 30px;">
+             <p>Proper hashing like this is a crucial layer of defense. If a website's database is stolen, attackers only get the hashes, not the original passwords. This significantly slows them down and makes cracking many passwords much harder, especially when unique salts are used.</p>
+             <p>However, hashing alone isn't a silver bullet. Attackers can still try to guess passwords and hash them to see if they match stored hashes. This is why **password strength** (checked on the <a href="{{ url_for('index') }}" style="font-size: 1em;">other page</a>) and **checking for breaches** are also vital steps. Using **unique passwords** for every site and enabling **2-Factor Authentication (2FA)** are also essential best practices for users.</p>
+        </div>
+
+
+        {# Link back to the strength checker #}
+        <a href="{{ url_for('index') }}">← Back to Password Strength & Breach Checker</a>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleButton = document.getElementById('darkModeToggle');
+            const body = document.body;
+
+            const applyTheme = (theme) => {
+                if (theme === 'dark') {
+                    body.classList.add('dark-mode');
+                    toggleButton.textContent = 'Light Mode';
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    body.classList.remove('dark-mode');
+                    toggleButton.textContent = 'Dark Mode';
+                    localStorage.setItem('theme', 'light');
+                }
+            };
+
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            let initialTheme = 'light';
+            if (savedTheme) {
+                initialTheme = savedTheme;
+            } else if (prefersDark) {
+                initialTheme = 'dark';
+            }
+            applyTheme(initialTheme);
+
+            toggleButton.addEventListener('click', () => {
+                const currentTheme = body.classList.contains('dark-mode') ? 'dark' : 'light';
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                applyTheme(newTheme);
+            });
+
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                 const manualThemeSet = localStorage.getItem('theme');
+                 if (!manualThemeSet) {
+                    applyTheme(e.matches ? 'dark' : 'light');
+                 }
+            });
+        });
+
+        // Function to copy the generated hash to the verification input
+        function copyHash() {
+             const generatedHashSpan = document.getElementById('generatedHash');
+             const hashToVerifyInput = document.getElementById('hash_to_verify');
+
+             if (generatedHashSpan && hashToVerifyInput) {
+                 const hashValue = generatedHashSpan.textContent.trim();
+                 // Use Clipboard API for better user experience if available
+                 if (navigator.clipboard) {
+                     navigator.clipboard.writeText(hashValue).then(() => {
+                        alert('Hash copied to clipboard!');
+                     }).catch(err => {
+                         console.error('Could not copy hash to clipboard: ', err);
+                         // Fallback to alert and setting input value if clipboard fails
+                         hashToVerifyInput.value = hashValue;
+                         alert('Hash copied to verification field!');
+                     });
+                 } else {
+                    // Fallback for older browsers: just set the input value
+                    hashToVerifyInput.value = hashValue;
+                    alert('Hash copied to verification field!');
+                 }
+             } else {
+                 alert('Error: Could not find hash or verification input element.');
+             }
+        }
+    </script>
+</body>
+</html>
