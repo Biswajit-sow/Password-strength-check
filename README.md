@@ -1,2 +1,2 @@
-Password Strength & Breach Checker
+Password Strength & Breach Checker and 
 Password Hashing & Verification Demo
